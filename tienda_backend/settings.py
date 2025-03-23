@@ -37,6 +37,8 @@ environ.Env.read_env()
 
 INSTALLED_APPS = [
     'rest_framework',
+    'rest_framework.authtoken',
+    'corsheaders',
     'core.apps.CoreConfig',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -46,7 +48,33 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 ]
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.TokenAuthentication',  # Para autenticación con tokens
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',  # Solo usuarios autenticados pueden acceder
+    ),
+}
+
+#si se usa JWT
+#from datetime import timedelta
+
+#REST_FRAMEWORK['DEFAULT_AUTHENTICATION_CLASSES'] += (
+#    'rest_framework_simplejwt.authentication.JWTAuthentication',
+#)
+
+#SIMPLE_JWT = {
+#    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),  # Token válido por 1 día
+#    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+#}
+
+#
+
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.common.CommonMiddleware",
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
