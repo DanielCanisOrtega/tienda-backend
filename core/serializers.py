@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import Tienda, Empleado, Producto, Venta, DetalleVenta, Gasto, Turno, AperturaCaja
+from .models import Tienda, Empleado, Producto, Venta, DetalleVenta, Gasto, Caja
 
 # Obtener el modelo de usuario personalizado
 Usuario = get_user_model()
@@ -58,18 +58,14 @@ class GastoSerializer(serializers.ModelSerializer):
         model = Gasto
         fields = ['id', 'tienda', 'monto', 'categoria', 'descripcion', 'fecha']
 
-# Serializador para Turno
-class TurnoSerializer(serializers.ModelSerializer):
-    empleado = UsuarioSerializer(read_only=True)
+class CajaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Caja
+        fields = '__all__'
+
+class CajaCierreSerializer(serializers.ModelSerializer):
+    saldo_final = serializers.DecimalField(max_digits=10, decimal_places=2)
 
     class Meta:
-        model = Turno
-        fields = ['id', 'tienda', 'empleado', 'hora_inicio', 'hora_fin']
-
-# Serializador para Apertura de Caja
-class AperturaCajaSerializer(serializers.ModelSerializer):
-    turno = TurnoSerializer(read_only=True)
-
-    class Meta:
-        model = AperturaCaja
-        fields = ['id', 'tienda', 'turno', 'monto_inicial', 'fecha_apertura']
+        model = Caja
+        fields = ['saldo_final']

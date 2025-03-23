@@ -36,7 +36,8 @@ environ.Env.read_env()
 # Application definition
 
 INSTALLED_APPS = [
-    'core',
+    'rest_framework',
+    'core.apps.CoreConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

@@ -47,8 +47,14 @@ class Producto(models.Model):
 
 #  Caja (Control de apertura y cierre por turno)
 class Caja(models.Model):
+    TURNO_CHOICES = [
+        ('mañana', 'Mañana'),
+        ('noche', 'Noche'),
+    ]
+    
     tienda = models.ForeignKey(Tienda, on_delete=models.CASCADE, related_name="cajas")
     usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="cajas_abiertas")
+    turno = models.CharField(max_length=10, choices=TURNO_CHOICES, default='Mañana')  # Turno de la caja
     saldo_inicial = models.DecimalField(max_digits=10, decimal_places=2)
     saldo_final = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     fecha_apertura = models.DateTimeField(default=timezone.now)
@@ -62,7 +68,8 @@ class Caja(models.Model):
         self.save()
 
     def __str__(self):
-        return f"Caja {self.id} - {self.tienda.nombre} - {self.estado}"
+        return f"Caja {self.id} - {self.tienda.nombre} - {self.turno} - {self.estado}"
+
 
 #  Ventas (Asociadas a una caja abierta)
 class Venta(models.Model):
