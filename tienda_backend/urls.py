@@ -28,8 +28,6 @@ urlpatterns = [
     path('api-auth/', include('rest_framework.urls')),  # Para autenticación con sesiones
     path('api/token/', obtain_auth_token, name='api_token_auth'),  # Endpoint para obtener un token
     path('', home), 
-<<<<<<< HEAD
 ]
-=======
-]
->>>>>>> main
+
+
