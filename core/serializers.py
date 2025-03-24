@@ -1,9 +1,9 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import Tienda, Empleado, Producto, Venta, DetalleVenta, Gasto, Caja
+from .models import Usuario, Tienda, Empleado, Producto, Venta, DetalleVenta, Gasto, Caja
 
 # Obtener el modelo de usuario personalizado
-Usuario = get_user_model()
+#Usuario = get_user_model()
 
 # Serializador para Usuario
 class UsuarioSerializer(serializers.ModelSerializer):
@@ -33,7 +33,7 @@ class ProductoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Producto
-        fields = ['id', 'nombre', 'categoria', 'precio', 'stock', 'codigo_barras', 'tienda']
+        fields = ['id', 'nombre', 'categoria', 'precio', 'cantidad', 'codigo_barras', 'tienda']
 
 # Serializador para Detalle de Venta
 class DetalleVentaSerializer(serializers.ModelSerializer):
@@ -61,11 +61,14 @@ class GastoSerializer(serializers.ModelSerializer):
 class CajaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Caja
-        fields = '__all__'
+        fields = '__all__'  # Muestra todos los campos
+        read_only_fields = ['fecha_apertura', 'fecha_cierre', 'estado']
 
-class CajaCierreSerializer(serializers.ModelSerializer):
-    saldo_final = serializers.DecimalField(max_digits=10, decimal_places=2)
+    def update(self, instance, validated_data):
+        """
+        Permite actualizar solo ciertos campos de la caja (evita modificar estado manualmente).
+        """
+        if 'saldo_final' in validated_data:
+            instance.cerrar_caja(validated_data['saldo_final'])
+        return super().update(instance, validated_data)
 
-    class Meta:
-        model = Caja
-        fields = ['saldo_final']
