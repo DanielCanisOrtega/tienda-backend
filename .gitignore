@@ -1,2 +1,4 @@
 # Environments
 .env
+__pycache__/
+*.pyc
