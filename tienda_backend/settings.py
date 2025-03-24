@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -32,10 +33,12 @@ import environ
 env = environ.Env()
 environ.Env.read_env()
 
+AUTH_USER_MODEL = 'core.Usuario'
 
 # Application definition
 
 INSTALLED_APPS = [
+    'rest_framework_simplejwt',
     'rest_framework',
     'rest_framework.authtoken',
     'corsheaders',
@@ -46,12 +49,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
 ]
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.TokenAuthentication',  # Para autenticación con tokens
+        'rest_framework.authentication.TokenAuthentication', 
+        'rest_framework_simplejwt.authentication.JWTAuthentication', # Para autenticación con tokens
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',  # Solo usuarios autenticados pueden acceder
@@ -59,6 +64,16 @@ REST_FRAMEWORK = {
 }
 
 #si se usa JWT
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(hours=1),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "ALGORITHM": "HS256",
+    "SIGNING_KEY": "tu_clave_secreta",  # O mejor usa una variable de entorno
+    "AUTH_HEADER_TYPES": ("Bearer",),
+}
 #from datetime import timedelta
 
 #REST_FRAMEWORK['DEFAULT_AUTHENTICATION_CLASSES'] += (

@@ -71,4 +71,3 @@ class CajaSerializer(serializers.ModelSerializer):
         if 'saldo_final' in validated_data:
             instance.cerrar_caja(validated_data['saldo_final'])
         return super().update(instance, validated_data)
-

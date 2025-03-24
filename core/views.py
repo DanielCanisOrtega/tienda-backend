@@ -1,8 +1,9 @@
-from rest_framework import viewsets, permissions, status
+from rest_framework import generics, permissions,viewsets, status
 from django.contrib.auth import get_user_model
 from .models import Caja, Tienda, Empleado, Producto, Venta, DetalleVenta, Gasto
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.serializers import ModelSerializer
 from rest_framework.permissions import IsAuthenticated
 from .serializers import (
     CajaSerializer, UsuarioSerializer, TiendaSerializer, EmpleadoSerializer, ProductoSerializer, VentaSerializer,
@@ -12,6 +13,20 @@ from .serializers import (
 # Obtener el modelo de usuario
 Usuario = get_user_model()
 
+# Serializador simple para el perfil del usuario
+class UserProfileSerializer(ModelSerializer):
+    class Meta:
+        model = Usuario
+        fields = ['id', 'username', 'email', 'first_name', 'last_name']  # Ajusta los campos según tu modelo personalizado
+
+# Vista para obtener el perfil del usuario autenticado
+class UserProfileView(generics.RetrieveAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = UserProfileSerializer
+
+    def get_object(self):
+        return self.request.user
+    
 # Vista para Usuarios
 class UsuarioViewSet(viewsets.ModelViewSet):
     queryset = Usuario.objects.all()
@@ -106,4 +121,3 @@ class CajaViewSet(viewsets.ModelViewSet):
         
         except Caja.DoesNotExist:
             return Response({"error": "Caja no encontrada."}, status=status.HTTP_404_NOT_FOUND)
-
