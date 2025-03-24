@@ -13,11 +13,38 @@ class UsuarioSerializer(serializers.ModelSerializer):
 
 # Serializador para Tienda
 class TiendaSerializer(serializers.ModelSerializer):
-    administrador = UsuarioSerializer(read_only=True)
+    propietario = UsuarioSerializer(read_only=True)
+    empleados = serializers.SerializerMethodField()  # Agrega una función para obtener empleados específicos
 
     class Meta:
         model = Tienda
-        fields = ['id', 'nombre', 'direccion', 'administrador']
+        fields = ['id', 'nombre', 'direccion', 'propietario', 'empleados']
+
+    def get_empleados(self, obj):
+        """Obtiene los empleados pertenecientes a la tienda específica"""
+        empleados = obj.empleados.all()  # Filtra empleados de esta tienda
+        return [{"id": emp.id, "nombre": emp.usuario.username} for emp in empleados]
+
+    def create(self, validated_data):
+        """
+        Sobrescribe el método create para asignar automáticamente el propietario de la tienda.
+        """
+        request = self.context.get('request')
+        if request and hasattr(request, "user"):
+            validated_data['propietario'] = request.user  # Asignar el usuario autenticado como propietario
+        return Tienda.objects.create(**validated_data)
+    
+    
+    def update(self, instance, validated_data):
+        empleados = validated_data.pop('empleados', None)  # Se maneja aparte para evitar errores
+        instance.nombre = validated_data.get('nombre', instance.nombre)
+        instance.direccion = validated_data.get('direccion', instance.direccion)
+        
+        if empleados is not None:
+            instance.empleados.set(empleados)  # Actualiza empleados
+
+        instance.save()
+        return instance
 
 # Serializador para Empleado
 class EmpleadoSerializer(serializers.ModelSerializer):
@@ -33,7 +60,7 @@ class ProductoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Producto
-        fields = ['id', 'nombre', 'categoria', 'precio', 'cantidad', 'codigo_barras', 'tienda']
+        fields = '__all__'
 
 # Serializador para Detalle de Venta
 class DetalleVentaSerializer(serializers.ModelSerializer):
