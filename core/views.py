@@ -4,6 +4,7 @@ from .models import Caja, Tienda, Empleado, Producto, Venta, DetalleVenta, Gasto
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from django.shortcuts import get_object_or_404
 from .serializers import (
     CajaSerializer, UsuarioSerializer, TiendaSerializer, EmpleadoSerializer, ProductoSerializer, VentaSerializer,
     DetalleVentaSerializer, GastoSerializer
@@ -77,6 +78,15 @@ class TiendaViewSet(viewsets.ModelViewSet):
 
         except Empleado.DoesNotExist:
             return Response({"error": "El empleado no pertenece a esta tienda"}, status=400)
+        
+    @action(detail=True, methods=["post"])
+    def seleccionar_tienda(self, request, pk=None):
+        """
+        Guarda en la sesión la tienda que el usuario está administrando.
+        """
+        tienda = get_object_or_404(Tienda, id=pk, propietario=request.user)
+        request.session["tienda_id"] = tienda.id
+        return Response({"mensaje": f"Tienda {tienda.nombre} seleccionada correctamente."})
 
 
 # Vista para Empleados
@@ -90,23 +100,28 @@ class ProductoViewSet(viewsets.ModelViewSet):
     """
     API para gestionar productos de una tienda.
     """
-    queryset = Producto.objects.all()
     serializer_class = ProductoSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         """
-        Filtra los productos para que un usuario solo vea los de su tienda.
+        Filtra los productos para que un usuario solo vea los de su tienda activa.
         """
-        return Producto.objects.filter(tienda__usuarios=self.request.user)
+        tienda_id = self.request.session.get("tienda_id")  # Obtener tienda activa de la sesión
+        if not tienda_id:
+            return Producto.objects.none()  # No retorna productos si no hay tienda activa
+        
+        return Producto.objects.filter(tienda_id=tienda_id)
 
     def perform_create(self, serializer):
         """
-        Asigna automáticamente la tienda del usuario autenticado al crear un producto.
+        Asigna automáticamente la tienda activa al crear un producto.
         """
-        tienda = self.request.user.tiendas.first()
-        if not tienda:
-            raise serializers.ValidationError("El usuario no tiene una tienda asignada.")
+        tienda_id = self.request.session.get("tienda_id")
+        if not tienda_id:
+            raise serializers.ValidationError("No hay una tienda activa seleccionada.")
+        
+        tienda = get_object_or_404(Tienda, id=tienda_id)
         serializer.save(tienda=tienda)
 
     def destroy(self, request, *args, **kwargs):
@@ -114,21 +129,27 @@ class ProductoViewSet(viewsets.ModelViewSet):
         Evita eliminar productos si tienen ventas asociadas.
         """
         producto = self.get_object()
-        if producto.ventas.exists():
+        if producto.ventas.exists():  # Suponiendo que hay un modelo "Venta" con relación a "Producto"
             return Response({"error": "No se puede eliminar un producto con ventas asociadas."}, status=400)
         return super().destroy(request, *args, **kwargs)
 
-    @action(detail=True, methods=['patch'], url_path="actualizar-cantidad")
+    @action(detail=True, methods=["patch"], url_path="actualizar-cantidad")
     def actualizar_cantidad(self, request, pk=None):
         """
-        Permite actualizar la cantidad de stock de un producto.
+        Permite actualizar la cantidad de stock de un producto, asegurando que pertenece a la tienda activa.
         """
-        producto = self.get_object()
+        tienda_id = self.request.session.get("tienda_id")
+        if not tienda_id:
+            return Response({"error": "No hay una tienda activa seleccionada."}, status=400)
+
+        producto = get_object_or_404(Producto, id=pk, tienda_id=tienda_id)  # Filtrar por tienda activa
         nueva_cantidad = request.data.get("cantidad")
-        if nueva_cantidad is not None:
+
+        if nueva_cantidad is not None and isinstance(nueva_cantidad, int):
             producto.cantidad = nueva_cantidad
             producto.save()
             return Response({"mensaje": "Cantidad actualizada correctamente."})
+        
         return Response({"error": "Debe proporcionar una cantidad válida."}, status=400)
 
 # Vista para Ventas
