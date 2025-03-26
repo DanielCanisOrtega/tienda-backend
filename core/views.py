@@ -1,3 +1,5 @@
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 from rest_framework import viewsets, permissions, status
 from django.contrib.auth import get_user_model
 from .models import Caja, Tienda, Empleado, Producto, Venta, DetalleVenta, Gasto
@@ -22,29 +24,79 @@ class UsuarioViewSet(viewsets.ModelViewSet):
 
 # Vista para Tiendas
 class TiendaViewSet(viewsets.ModelViewSet):
+    """
+    API para la gestión de tiendas.  
+    Los usuarios pueden administrar sus tiendas, agregar y remover empleados, y seleccionar una tienda activa.
+    """
     queryset = Tienda.objects.all()
     serializer_class = TiendaSerializer
     permission_classes = [permissions.IsAuthenticated]
 
+    @swagger_auto_schema(
+        operation_description="Lista las tiendas del usuario autenticado.",
+        responses={200: TiendaSerializer(many=True)}
+    )
     def get_queryset(self):
         """Filtra tiendas según el usuario autenticado"""
         return Tienda.objects.filter(propietario=self.request.user)
 
+    @swagger_auto_schema(
+        operation_description="Crea una nueva tienda y la asigna al usuario autenticado.",
+        request_body=TiendaSerializer,
+        responses={
+            201: TiendaSerializer,
+            400: "Error en la creación de la tienda."
+        }
+    )
     def perform_create(self, serializer):
         """Asigna automáticamente el propietario al usuario autenticado"""
         serializer.save(propietario=self.request.user)
 
+    @swagger_auto_schema(
+        operation_description="Lista los empleados de una tienda específica.",
+        responses={
+            200: openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    "empleados": openapi.Schema(
+                        type=openapi.TYPE_ARRAY,
+                        items=openapi.Schema(
+                            type=openapi.TYPE_OBJECT,
+                            properties={
+                                "id": openapi.Schema(type=openapi.TYPE_INTEGER, description="ID del empleado"),
+                                "nombre": openapi.Schema(type=openapi.TYPE_STRING, description="Nombre de usuario del empleado")
+                            }
+                        )
+                    )
+                }
+            )
+        }
+    )
     @action(detail=True, methods=['get'])
     def empleados(self, request, pk=None):
         """Lista los empleados de una tienda específica"""
         tienda = self.get_object()
-        empleados = Empleado.objects.filter(tienda=tienda)  #  Filtrar empleados
+        empleados = Empleado.objects.filter(tienda=tienda)
         empleados_data = [
             {"id": empleado.id, "nombre": empleado.usuario.username}
             for empleado in empleados
         ]
         return Response({"empleados": empleados_data})
 
+    @swagger_auto_schema(
+        operation_description="Agrega un empleado a una tienda.",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                "usuario_id": openapi.Schema(type=openapi.TYPE_INTEGER, description="ID del usuario a agregar")
+            },
+            required=["usuario_id"]
+        ),
+        responses={
+            200: "Empleado agregado correctamente.",
+            400: "Error en la asignación del empleado."
+        }
+    )
     @action(detail=True, methods=['post'])
     def agregar_empleado(self, request, pk=None):
         """Agrega un empleado a una tienda"""
@@ -65,6 +117,20 @@ class TiendaViewSet(viewsets.ModelViewSet):
         except Usuario.DoesNotExist:
             return Response({"error": "Usuario no encontrado"}, status=400)
 
+    @swagger_auto_schema(
+        operation_description="Elimina un empleado de la tienda.",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                "usuario_id": openapi.Schema(type=openapi.TYPE_INTEGER, description="ID del usuario a remover")
+            },
+            required=["usuario_id"]
+        ),
+        responses={
+            200: "Empleado eliminado correctamente.",
+            400: "El empleado no pertenece a esta tienda."
+        }
+    )
     @action(detail=True, methods=['post'])
     def remover_empleado(self, request, pk=None):
         """Elimina un empleado de la tienda"""
@@ -73,12 +139,16 @@ class TiendaViewSet(viewsets.ModelViewSet):
 
         try:
             empleado = Empleado.objects.get(usuario__id=usuario_id, tienda=tienda)
-            empleado.delete()  #  Eliminar correctamente el empleado
+            empleado.delete()
             return Response({"mensaje": f"Empleado {empleado.usuario.username} eliminado de {tienda.nombre}"})
 
         except Empleado.DoesNotExist:
             return Response({"error": "El empleado no pertenece a esta tienda"}, status=400)
-        
+
+    @swagger_auto_schema(
+        operation_description="Selecciona una tienda y la almacena en la sesión del usuario.",
+        responses={200: "Tienda seleccionada correctamente.", 404: "Tienda no encontrada."}
+    )
     @action(detail=True, methods=["post"])
     def seleccionar_tienda(self, request, pk=None):
         """
@@ -87,6 +157,7 @@ class TiendaViewSet(viewsets.ModelViewSet):
         tienda = get_object_or_404(Tienda, id=pk, propietario=request.user)
         request.session["tienda_id"] = tienda.id
         return Response({"mensaje": f"Tienda {tienda.nombre} seleccionada correctamente."})
+
 
 
 # Vista para Empleados
@@ -103,6 +174,10 @@ class ProductoViewSet(viewsets.ModelViewSet):
     serializer_class = ProductoSerializer
     permission_classes = [permissions.IsAuthenticated]
 
+    @swagger_auto_schema(
+        operation_description="Lista los productos de la tienda activa del usuario.",
+        responses={200: ProductoSerializer(many=True)}
+    )
     def get_queryset(self):
         """
         Filtra los productos para que un usuario solo vea los de su tienda activa.
@@ -113,6 +188,14 @@ class ProductoViewSet(viewsets.ModelViewSet):
         
         return Producto.objects.filter(tienda_id=tienda_id)
 
+    @swagger_auto_schema(
+        operation_description="Crea un nuevo producto en la tienda activa.",
+        request_body=ProductoSerializer,
+        responses={
+            201: ProductoSerializer,
+            400: "No hay una tienda activa seleccionada."
+        }
+    )
     def perform_create(self, serializer):
         """
         Asigna automáticamente la tienda activa al crear un producto.
@@ -124,6 +207,13 @@ class ProductoViewSet(viewsets.ModelViewSet):
         tienda = get_object_or_404(Tienda, id=tienda_id)
         serializer.save(tienda=tienda)
 
+    @swagger_auto_schema(
+        operation_description="Elimina un producto si no tiene ventas asociadas.",
+        responses={
+            204: "Producto eliminado correctamente.",
+            400: "No se puede eliminar un producto con ventas asociadas."
+        }
+    )
     def destroy(self, request, *args, **kwargs):
         """
         Evita eliminar productos si tienen ventas asociadas.
@@ -133,6 +223,20 @@ class ProductoViewSet(viewsets.ModelViewSet):
             return Response({"error": "No se puede eliminar un producto con ventas asociadas."}, status=400)
         return super().destroy(request, *args, **kwargs)
 
+    @swagger_auto_schema(
+        operation_description="Actualiza la cantidad de stock de un producto en la tienda activa.",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'cantidad': openapi.Schema(type=openapi.TYPE_INTEGER, description="Nueva cantidad de stock")
+            },
+            required=['cantidad']
+        ),
+        responses={
+            200: "Cantidad actualizada correctamente.",
+            400: "Debe proporcionar una cantidad válida o no hay tienda activa."
+        }
+    )
     @action(detail=True, methods=["patch"], url_path="actualizar-cantidad")
     def actualizar_cantidad(self, request, pk=None):
         """
@@ -151,6 +255,24 @@ class ProductoViewSet(viewsets.ModelViewSet):
             return Response({"mensaje": "Cantidad actualizada correctamente."})
         
         return Response({"error": "Debe proporcionar una cantidad válida."}, status=400)
+
+    @swagger_auto_schema(
+        operation_description="Obtiene una lista de productos con stock disponible en la tienda activa.",
+        responses={200: ProductoSerializer(many=True)}
+    )
+    @action(detail=False, methods=['get'], url_path="disponibles")
+    def productos_disponibles(self, request):
+        """
+        Retorna solo los productos con stock disponible.
+        """
+        tienda_id = self.request.session.get("tienda_id")  # Obtener tienda activa de la sesión
+        if not tienda_id:
+            return Producto.objects.none()  # No retorna productos si no hay tienda activa
+
+        productos = Producto.objects.filter(tienda_id=tienda_id, cantidad__gt=0)
+        serializer = self.get_serializer(productos, many=True)
+        return Response(serializer.data)
+
 
 # Vista para Ventas
 class VentaViewSet(viewsets.ModelViewSet):

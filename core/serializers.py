@@ -58,20 +58,9 @@ class EmpleadoSerializer(serializers.ModelSerializer):
 class ProductoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Producto
-        fields = ["id", "tienda", "nombre", "categoria", "precio", "cantidad", "codigo_barras"]
-        read_only_fields = ["id"]
+        fields = ["id", "nombre", "categoria", "precio", "cantidad", "codigo_barras"]
 
-    def validate(self, data):
-        """
-        Validar que la tienda a la que se intenta agregar el producto pertenece al usuario autenticado.
-        """
-        user = self.context["request"].user
-        tienda = data.get("tienda")
-
-        if not Tienda.objects.filter(id=tienda.id, propietario=user).exists():
-            raise serializers.ValidationError("No tienes permisos para administrar esta tienda.")
-
-        return data
+    
 
 # Serializador para Detalle de Venta
 class DetalleVentaSerializer(serializers.ModelSerializer):
