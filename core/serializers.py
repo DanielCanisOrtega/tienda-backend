@@ -1,3 +1,4 @@
+from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from .models import Usuario, Tienda, Empleado, Producto, Venta, DetalleVenta, Gasto, Caja
@@ -81,21 +82,71 @@ class VentaSerializer(serializers.ModelSerializer):
 
 # Serializador para Gasto
 class GastoSerializer(serializers.ModelSerializer):
+    """
+    Serializador para gestionar gastos.
+    """
+
     class Meta:
         model = Gasto
-        fields = ['id', 'tienda', 'monto', 'categoria', 'descripcion', 'fecha']
+        fields = ["id", "tienda", "caja", "usuario", "fecha", "descripcion", "monto", "categoria"]
+        read_only_fields = ["id", "fecha", "usuario", "caja", "tienda"]  # La tienda se asignará automáticamente
+
+    def validate(self, data):
+        """
+        Valida que haya una caja abierta en la tienda activa antes de registrar el gasto.
+        """
+        request = self.context.get("request")
+        if not request:
+            raise serializers.ValidationError("No se pudo obtener el usuario de la solicitud.")
+
+        tienda_id = request.session.get("tienda_id")  # Obtener la tienda activa de la sesión
+        if not tienda_id:
+            raise serializers.ValidationError("No hay una tienda activa seleccionada.")
+
+        tienda = get_object_or_404(Tienda, id=tienda_id)
+        caja_abierta = Caja.objects.filter(tienda=tienda, estado="abierta").first()
+        if not caja_abierta:
+            raise serializers.ValidationError("No hay una caja abierta en la tienda para registrar el gasto.")
+
+        data["usuario"] = request.user
+        data["tienda"] = tienda  # Asigna automáticamente la tienda activa
+        data["caja"] = caja_abierta
+        return data
+
 
 class CajaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Caja
-        fields = '__all__'  # Muestra todos los campos
-        read_only_fields = ['fecha_apertura', 'fecha_cierre', 'estado']
+        fields = ['id', 'usuario', 'turno', 'saldo_inicial', 'saldo_final', 'fecha_apertura', 'fecha_cierre', 'estado']
+        read_only_fields = ['id', 'usuario', 'fecha_apertura', 'fecha_cierre', 'estado']
 
-    def update(self, instance, validated_data):
+    def validate(self, data):
         """
-        Permite actualizar solo ciertos campos de la caja (evita modificar estado manualmente).
+        Validar que no haya otra caja abierta en la tienda activa.
         """
-        if 'saldo_final' in validated_data:
-            instance.cerrar_caja(validated_data['saldo_final'])
-        return super().update(instance, validated_data)
+        request = self.context.get('request')
+        tienda_id = request.session.get("tienda_id")
+        
+        if not tienda_id:
+            raise serializers.ValidationError("No hay una tienda activa seleccionada.")
 
+        # Verificar si ya existe una caja abierta en la tienda activa
+        if Caja.objects.filter(tienda_id=tienda_id, estado='abierta').exists():
+            raise serializers.ValidationError("Ya hay una caja abierta en la tienda activa.")
+        
+        return data
+
+    def create(self, validated_data):
+        """
+        Asigna la tienda activa y el usuario autenticado al crear la caja.
+        """
+        request = self.context.get('request')
+        tienda_id = request.session.get("tienda_id")
+        
+        if not tienda_id:
+            raise serializers.ValidationError("No hay una tienda activa seleccionada.")
+        
+        validated_data['tienda_id'] = tienda_id
+        validated_data['usuario'] = request.user
+        
+        return super().create(validated_data)

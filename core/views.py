@@ -1,3 +1,4 @@
+from django.db import models
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from rest_framework import viewsets, permissions, status
@@ -288,9 +289,51 @@ class DetalleVentaViewSet(viewsets.ModelViewSet):
 
 # Vista para Gastos
 class GastoViewSet(viewsets.ModelViewSet):
-    queryset = Gasto.objects.all()
+    """
+    API para gestionar los gastos de una tienda.
+    """
     serializer_class = GastoSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        """
+        Retorna los gastos de la tienda activa del usuario autenticado.
+        """
+        tienda_id = self.request.session.get("tienda_id")
+        if not tienda_id:
+            return Gasto.objects.none()  # No hay tienda seleccionada
+        
+        return Gasto.objects.filter(tienda_id=tienda_id)
+
+    def perform_create(self, serializer):
+        """
+        Verifica que haya una caja abierta en la tienda y asigna automáticamente el gasto.
+        """
+        tienda_id = self.request.session.get("tienda_id")
+        if not tienda_id:
+            raise serializers.ValidationError("No hay una tienda activa seleccionada.")
+
+        tienda = get_object_or_404(Tienda, id=tienda_id)
+
+        # Verificar si hay una caja abierta en la tienda
+        caja = Caja.objects.filter(tienda=tienda, estado="abierta").first()
+        if not caja:
+            raise serializers.ValidationError("No hay una caja abierta en la tienda.")
+
+        # Guardar el gasto con la tienda, caja y usuario actual
+        serializer.save(tienda=tienda, caja=caja, usuario=self.request.user)
+
+    @action(detail=False, methods=['get'], url_path="por-categoria")
+    def listar_por_categoria(self, request):
+        """
+        Retorna los gastos agrupados por categoría en la tienda activa.
+        """
+        tienda_id = self.request.session.get("tienda_id")
+        if not tienda_id:
+            return Response({"error": "No hay una tienda activa seleccionada."}, status=400)
+
+        gastos = Gasto.objects.filter(tienda_id=tienda_id).values("categoria").annotate(total=models.Sum("monto"))
+        return Response(gastos)
 
 class CajaViewSet(viewsets.ModelViewSet):
     """
@@ -301,24 +344,28 @@ class CajaViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """
-        Retorna solo las cajas de la tienda a la que pertenece el usuario autenticado.
+        Retorna solo las cajas de la tienda activa en la sesión del usuario.
         """
-        return Caja.objects.filter(tienda__usuarios=self.request.user)
+        tienda_id = self.request.session.get("tienda_id")
+        if not tienda_id:
+            return Caja.objects.none()
+        return Caja.objects.filter(tienda_id=tienda_id)
 
-    def perform_create(self, serializer):
+    def perform_create(self, serializer):  
         """
-        Crea una nueva caja asegurando que no haya otra abierta en la misma tienda.
+        Crea una nueva caja asegurando que no haya otra abierta en la tienda activa.
         """
-        tienda = serializer.validated_data['tienda']
+        tienda_id = self.request.session.get("tienda_id")
+        if not tienda_id:
+            raise serializers.ValidationError("No hay una tienda activa seleccionada.")
+
+        tienda = get_object_or_404(Tienda, id=tienda_id)
         
         # Verifica si hay una caja abierta en la tienda
         if Caja.objects.filter(tienda=tienda, estado='abierta').exists():
-            return Response(
-                {"error": "Ya hay una caja abierta para esta tienda."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        serializer.save(usuario=self.request.user)
+            raise serializers.ValidationError("Ya hay una caja abierta para esta tienda.")
+
+        serializer.save(usuario=self.request.user, tienda=tienda)
 
     @action(detail=True, methods=['post'])
     def cerrar(self, request, pk=None):
