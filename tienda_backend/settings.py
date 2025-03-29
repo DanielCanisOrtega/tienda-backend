@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-0wk2)3$ul!3zxvd6qrt^3j3+upm#kl)4owt^wb3&l2fbk)-=73
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['https://tienda-backend-p9ms.onrender.com']
 
 import environ
 # Initialise environment variables
