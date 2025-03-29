@@ -27,6 +27,9 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['tienda-backend-p9ms.onrender.com']
 
+CSRF_TRUSTED_ORIGINS = ['https://tienda-backend-p9ms.onrender.com']
+
+
 import environ
 # Initialise environment variables
 env = environ.Env()
