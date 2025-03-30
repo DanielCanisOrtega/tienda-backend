@@ -1,4 +1,4 @@
-#!/home/daniel/seminario/tienda-backend/env/bin/python3
+#!/home/juandiego305/autenticacion/tienda-backend/env/bin/python3
 # -*- coding: utf-8 -*-
 import re
 import sys

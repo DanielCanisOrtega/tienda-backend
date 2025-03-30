@@ -25,7 +25,8 @@ SECRET_KEY = 'django-insecure-0wk2)3$ul!3zxvd6qrt^3j3+upm#kl)4owt^wb3&l2fbk)-=73
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['tienda-backend-p9ms.onrender.com']
+#ALLOWED_HOSTS = ['tienda-backend-p9ms.onrender.com']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
 CSRF_TRUSTED_ORIGINS = ['https://tienda-backend-p9ms.onrender.com']
 
@@ -40,28 +41,44 @@ environ.Env.read_env()
 
 INSTALLED_APPS = [
     'rest_framework',
+    'rest_framework_simplejwt',
     'rest_framework.authtoken',
     'corsheaders',
     'drf_yasg',
-    'core.apps.CoreConfig',
+    #'core.apps.CoreConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'dj_rest_auth',
+    'django.contrib.sites',  # Necesario para la recuperación de contraseña
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'dj_rest_auth.registration',
+    'core',
 ]
+
+# Configuración de autenticación con allauth
+
+ACCOUNT_LOGIN_METHODS = {"username"}  # Cambia la forma de autenticación
+ACCOUNT_SIGNUP_FIELDS = ["email*", "username*", "password1*", "password2*"]  # Define los campos requeridos
+
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.TokenAuthentication',  # Para autenticación con tokens
+        'rest_framework_simplejwt.authentication.JWTAuthentication', # Para autenticación con tokens
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',  # Solo usuarios autenticados pueden acceder
     ),
 }
 
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 #si se usa JWT
 #from datetime import timedelta
 
@@ -86,6 +103,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+    # Agregar este middleware para allauth
+    "allauth.account.middleware.AccountMiddleware",
 ]
 
 ROOT_URLCONF = 'tienda_backend.urls'
@@ -146,7 +166,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'es'
 
 TIME_ZONE = 'UTC'
 
@@ -166,3 +186,4 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'core.Usuario'
+

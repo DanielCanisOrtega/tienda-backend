@@ -6,13 +6,32 @@ from django.contrib.auth import get_user_model
 from .models import Caja, Tienda, Empleado, Producto, Venta, DetalleVenta, Gasto
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
+import random
 from .serializers import (
     CajaSerializer, UsuarioSerializer, TiendaSerializer, EmpleadoSerializer, ProductoSerializer, VentaSerializer,
     DetalleVentaSerializer, GastoSerializer
 )
 from core import serializers
+
+class PasswordResetSMSView(APIView):
+    def post(self, request):
+        phone_number = request.data.get('phone')
+        user = User.objects.filter(profile__phone=phone_number).first()  # Asumiendo que hay un campo `phone`
+        
+        if user:
+            reset_code = random.randint(100000, 999999)
+            user.profile.reset_code = reset_code
+            user.profile.save()
+            
+            # Aquí se integraría Twilio o cualquier otro servicio para enviar el SMS
+            print(f"Enviar código {reset_code} a {phone_number}")
+            
+            return Response({'message': 'Código enviado'}, status=200)
+        
+        return Response({'error': 'Número no registrado'}, status=400)
 
 # Obtener el modelo de usuario
 Usuario = get_user_model()

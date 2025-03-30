@@ -1,6 +1,7 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import Usuario, Tienda, Empleado, Producto, Venta, DetalleVenta, Gasto, Caja
 
 # Obtener el modelo de usuario personalizado
@@ -12,6 +13,13 @@ class UsuarioSerializer(serializers.ModelSerializer):
         model = Usuario
         fields = ['id', 'username', 'email', 'telefono']
 
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        token['username'] = user.username
+        return token
+    
 # Serializador para Tienda
 class TiendaSerializer(serializers.ModelSerializer):
     propietario = UsuarioSerializer(read_only=True)
