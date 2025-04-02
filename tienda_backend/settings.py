@@ -60,7 +60,7 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles'
+    'django.contrib.staticfiles',
     #'dj_rest_auth',
     #'django.contrib.sites',  # Necesario para la recuperación de contraseña
     #'allauth',
@@ -101,7 +101,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 
     # Agregar este middleware para allauth
-    "allauth.account.middleware.AccountMiddleware",
+    #"allauth.account.middleware.AccountMiddleware",
 ]
 
 ROOT_URLCONF = 'tienda_backend.urls'
