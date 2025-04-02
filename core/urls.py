@@ -19,6 +19,6 @@ router.register(r'cajas', CajaViewSet, basename='caja')
 urlpatterns = [
     #path('auth/', include('dj_rest_auth.urls')), arreglar
     path('', include(router.urls)),  # Incluir todas las rutas del router
-    path('auth/registration/', include('dj_rest_auth.registration.urls')),
-    path('auth/password-reset-sms/', PasswordResetSMSView.as_view(), name='password-reset-sms'),
+    #path('auth/registration/', include('dj_rest_auth.registration.urls')),
+    #path('auth/password-reset-sms/', PasswordResetSMSView.as_view(), name='password-reset-sms'),
 ]
