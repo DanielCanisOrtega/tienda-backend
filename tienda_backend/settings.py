@@ -25,8 +25,7 @@ SECRET_KEY = 'django-insecure-0wk2)3$ul!3zxvd6qrt^3j3+upm#kl)4owt^wb3&l2fbk)-=73
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-#ALLOWED_HOSTS = ['tienda-backend-p9ms.onrender.com']
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+ALLOWED_HOSTS = ['tienda-backend-p9ms.onrender.com','127.0.0.1', 'localhost']
 
 CSRF_TRUSTED_ORIGINS = ['https://tienda-backend-p9ms.onrender.com']
 
@@ -79,19 +78,7 @@ REST_FRAMEWORK = {
 
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-#si se usa JWT
-#from datetime import timedelta
 
-#REST_FRAMEWORK['DEFAULT_AUTHENTICATION_CLASSES'] += (
-#    'rest_framework_simplejwt.authentication.JWTAuthentication',
-#)
-
-#SIMPLE_JWT = {
-#    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),  # Token válido por 1 día
-#    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
-#}
-
-#
 
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
