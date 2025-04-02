@@ -67,7 +67,6 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'dj_rest_auth.registration',
-    'core',
 ]
 
 # Configuración de autenticación con allauth
