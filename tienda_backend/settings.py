@@ -60,13 +60,13 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'dj_rest_auth',
-    'django.contrib.sites',  # Necesario para la recuperación de contraseña
-    'allauth',
-    'allauth.account',
-    'allauth.socialaccount',
-    'dj_rest_auth.registration',
+    'django.contrib.staticfiles'
+    #'dj_rest_auth',
+    #'django.contrib.sites',  # Necesario para la recuperación de contraseña
+    #'allauth',
+    #'allauth.account',
+    #'allauth.socialaccount',
+    #'dj_rest_auth.registration',
 ]
 
 # Configuración de autenticación con allauth
