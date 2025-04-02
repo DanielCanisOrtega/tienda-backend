@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
+from django.contrib.auth.hashers import make_password
 import random
 from .serializers import (
     CajaSerializer, UsuarioSerializer, TiendaSerializer, EmpleadoSerializer, ProductoSerializer, VentaSerializer,
@@ -16,10 +17,13 @@ from .serializers import (
 )
 from core import serializers
 
+# Obtener el modelo de usuario
+Usuario = get_user_model()
+
 class PasswordResetSMSView(APIView):
     def post(self, request):
         phone_number = request.data.get('phone')
-        user = User.objects.filter(profile__phone=phone_number).first()  # Asumiendo que hay un campo `phone`
+        user = Usuario.objects.filter(profile__phone=phone_number).first()  # Asumiendo que hay un campo `phone`
         
         if user:
             reset_code = random.randint(100000, 999999)
@@ -33,8 +37,7 @@ class PasswordResetSMSView(APIView):
         
         return Response({'error': 'Número no registrado'}, status=400)
 
-# Obtener el modelo de usuario
-Usuario = get_user_model()
+
 
 # Vista para Usuarios
 class UsuarioViewSet(viewsets.ModelViewSet):
@@ -117,40 +120,35 @@ class TiendaViewSet(viewsets.ModelViewSet):
             400: "Error en la asignación del empleado."
         }
     )
+
     @action(detail=True, methods=['post'])
     def agregar_empleado(self, request, pk=None):
-        """Agrega un empleado a una tienda"""
+        """Crea un nuevo usuario como empleado en la tienda activa."""
         tienda = self.get_object()
-        usuario_id = request.data.get('usuario_id')
+        nombre = request.data.get('nombre')
+        password_temporal = 'test'
+    
 
-        try:
-            usuario = Usuario.objects.get(id=usuario_id)
-            
-            # Verificar si el usuario ya es empleado en esta tienda
-            if Empleado.objects.filter(usuario=usuario, tienda=tienda).exists():
-                return Response({"error": "El usuario ya es empleado en esta tienda"}, status=400)
+        if not nombre:
+            return Response({"error": "El nombre del empleado es obligatorio."}, status=400)
 
-            # Crear un nuevo empleado asociado a la tienda
-            empleado = Empleado.objects.create(usuario=usuario, tienda=tienda)
-            return Response({"mensaje": f"Empleado {usuario.username} agregado a {tienda.nombre}", "empleado_id": empleado.id})
+        # Crear el usuario con la contraseña temporal
+        usuario = Usuario.objects.create(
+            username=nombre,
+            password=make_password(password_temporal)  # Asegura que la contraseña se almacene encriptada
+        )
+    
 
-        except Usuario.DoesNotExist:
-            return Response({"error": "Usuario no encontrado"}, status=400)
+        # Asociar el usuario como empleado de la tienda
+        Empleado.objects.create(usuario=usuario, tienda=tienda)
 
-    @swagger_auto_schema(
-        operation_description="Elimina un empleado de la tienda.",
-        request_body=openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            properties={
-                "usuario_id": openapi.Schema(type=openapi.TYPE_INTEGER, description="ID del usuario a remover")
-            },
-            required=["usuario_id"]
-        ),
-        responses={
-            200: "Empleado eliminado correctamente.",
-            400: "El empleado no pertenece a esta tienda."
-        }
-    )
+        return Response({
+            "mensaje": f"Empleado {usuario.username} agregado a {tienda.nombre}.",
+            "empleado_id": usuario.id,
+            "password_temporal": usuario.password
+        })
+
+    
     @action(detail=True, methods=['post'])
     def remover_empleado(self, request, pk=None):
         """Elimina un empleado de la tienda"""

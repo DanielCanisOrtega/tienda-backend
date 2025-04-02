@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser, Group, Permission
+from django.contrib.auth.models import AbstractUser, Group, Permission, UserManager
 from django.utils import timezone
 
 
@@ -8,7 +8,6 @@ from django.utils import timezone
 #  Usuario del sistema (Administrador o Vendedor)
 class Usuario(AbstractUser):
     telefono = models.CharField(max_length=15, blank=True, null=True)
-    # Evitar conflicto con 'groups' y 'user_permissions'
     groups = models.ManyToManyField(Group, related_name="usuarios", blank=True)
     user_permissions = models.ManyToManyField(Permission, related_name="usuarios", blank=True)
 
@@ -20,6 +19,7 @@ class Tienda(models.Model):
     nombre = models.CharField(max_length=100)
     direccion = models.TextField()
     propietario = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="tiendas")
+    telefono = models.CharField(max_length=15, blank=True, null=True)
 
     def __str__(self):
         return self.nombre

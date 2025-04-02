@@ -27,7 +27,7 @@ class TiendaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Tienda
-        fields = ['id', 'nombre', 'direccion', 'propietario', 'empleados']
+        fields = ['id', 'nombre', 'telefono', 'direccion', 'propietario', 'empleados']
 
     def get_empleados(self, obj):
         """Obtiene los empleados pertenecientes a la tienda específica"""
