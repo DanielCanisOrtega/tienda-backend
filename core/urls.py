@@ -1,5 +1,4 @@
 from django.urls import path, include
-from core.views import PasswordResetConfirmAPIView
 from rest_framework.routers import DefaultRouter
 from .views import (
     CajaViewSet, UsuarioViewSet, TiendaViewSet, EmpleadoViewSet, ProductoViewSet, VentaViewSet,
