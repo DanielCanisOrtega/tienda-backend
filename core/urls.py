@@ -3,7 +3,7 @@ from core.views import PasswordResetConfirmAPIView
 from rest_framework.routers import DefaultRouter
 from .views import (
     CajaViewSet, UsuarioViewSet, TiendaViewSet, EmpleadoViewSet, ProductoViewSet, VentaViewSet,
-    DetalleVentaViewSet, GastoViewSet,PasswordResetSMSView
+    DetalleVentaViewSet, GastoViewSet#,PasswordResetSMSView
 )
 
 # Configuración del router para manejar los endpoints automáticamente
