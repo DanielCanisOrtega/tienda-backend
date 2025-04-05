@@ -10,6 +10,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.hashers import make_password
+from django.utils.crypto import get_random_string
 import random
 from .serializers import (
     CajaSerializer, UsuarioSerializer, TiendaSerializer, EmpleadoSerializer, ProductoSerializer, VentaSerializer,
@@ -44,6 +45,25 @@ class UsuarioViewSet(viewsets.ModelViewSet):
     queryset = Usuario.objects.all()
     serializer_class = UsuarioSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        # Generar una contraseña aleatoria temporal
+        password_temporal = get_random_string(length=8)  # Ej: 'A2k9Lm3p'
+        
+        # Guardar el usuario con contraseña encriptada
+        usuario = serializer.save(password=make_password(password_temporal))
+
+        # Guardar la contraseña temporal en el objeto para retornarla en la respuesta
+        self.password_temporal = password_temporal
+
+    def create(self, request, *args, **kwargs):
+        response = super().create(request, *args, **kwargs)
+
+        # Solo si el usuario se creó correctamente
+        if hasattr(self, 'password_temporal'):
+            response.data['password_temporal'] = self.password_temporal
+        
+        return response
 
 # Vista para Tiendas
 class TiendaViewSet(viewsets.ModelViewSet):
