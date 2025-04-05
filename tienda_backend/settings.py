@@ -61,13 +61,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    #'dj_rest_auth',
-    #'django.contrib.sites',  # Necesario para la recuperación de contraseña
-    #'allauth',
-    #'allauth.account',
-    #'allauth.socialaccount',
-    #'dj_rest_auth.registration',
+    'dj_rest_auth',
+    'django.contrib.sites',  # Necesario para la recuperación de contraseña
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'dj_rest_auth.registration',
 ]
+
+SITE_ID = 2
 
 # Configuración de autenticación con allauth
 
@@ -94,11 +96,15 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'allauth.account.middleware.AccountMiddleware', 
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+    
+    
 
     # Agregar este middleware para allauth
     #"allauth.account.middleware.AccountMiddleware",
