@@ -83,7 +83,23 @@ REST_FRAMEWORK = {
 }
 
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'juandigarcia305@gmail.com'        # <- tu correo real
+EMAIL_HOST_PASSWORD = 'ojsb wkba dhkk aplh'   # <- una contraseña de app de Gmail
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+
+DJANGO_REST_AUTH = {
+    'PASSWORD_RESET_CONFIRM_URL': 'api/auth/password/reset/confirm/{uid}/{token}/'
+}
+
+REST_AUTH_SERIALIZERS = {
+    'PASSWORD_RESET_CONFIRM_SERIALIZER': 'core.serializers.CustomPasswordResetConfirmSerializer',
+}
 
 
 MIDDLEWARE = [

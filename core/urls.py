@@ -1,4 +1,5 @@
 from django.urls import path, include
+from core.views import PasswordResetConfirmAPIView
 from rest_framework.routers import DefaultRouter
 from .views import (
     CajaViewSet, UsuarioViewSet, TiendaViewSet, EmpleadoViewSet, ProductoViewSet, VentaViewSet,
@@ -20,5 +21,8 @@ urlpatterns = [
     path('', include(router.urls)),  # Incluir todas las rutas del router
     path('auth/', include('dj_rest_auth.urls')),
     path('auth/registration/', include('dj_rest_auth.registration.urls')),
+    path('api/auth/password/reset/confirm/<uidb64>/<token>/', PasswordResetConfirmAPIView.as_view(), name='password_reset_confirm_api'),
     #path('auth/password-reset-sms/', PasswordResetSMSView.as_view(), name='password-reset-sms'),
 ]
+
+
