@@ -169,24 +169,44 @@ class TiendaViewSet(viewsets.ModelViewSet):
         })
 
     
+    @swagger_auto_schema(
+    operation_description="Elimina un empleado de la tienda.",
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            "empleado_id": openapi.Schema(type=openapi.TYPE_INTEGER, description="ID del empleado a remover")
+        },
+        required=["empleado_id"]
+    ),
+    responses={
+        200: "Empleado eliminado correctamente.",
+        400: "El empleado no pertenece a esta tienda."
+    }
+)
     @action(detail=True, methods=['post'])
     def remover_empleado(self, request, pk=None):
         """Elimina un empleado de la tienda"""
         tienda = self.get_object()
-        usuario_id = request.data.get('usuario_id')
+        empleado_id = request.data.get('empleado_id')
+
+        if not empleado_id:
+            return Response({"error": "Debe proporcionar el ID del empleado a eliminar."}, status=400)
 
         try:
-            empleado = Empleado.objects.get(usuario__id=usuario_id, tienda=tienda)
+            empleado = Empleado.objects.get(id=empleado_id, tienda=tienda)
+            nombre_empleado = empleado.usuario.username
             empleado.delete()
-            return Response({"mensaje": f"Empleado {empleado.usuario.username} eliminado de {tienda.nombre}"})
+            return Response({"mensaje": f"Empleado {nombre_empleado} fue eliminado de {tienda.nombre}."})
 
         except Empleado.DoesNotExist:
-            return Response({"error": "El empleado no pertenece a esta tienda"}, status=400)
+            return Response({"error": "El empleado no pertenece a esta tienda o no existe."}, status=400)
+
 
     @swagger_auto_schema(
         operation_description="Selecciona una tienda y la almacena en la sesión del usuario.",
         responses={200: "Tienda seleccionada correctamente.", 404: "Tienda no encontrada."}
     )
+
     @action(detail=True, methods=["post"])
     def seleccionar_tienda(self, request, pk=None):
         """
