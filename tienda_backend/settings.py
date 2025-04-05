@@ -37,6 +37,10 @@ CORS_ALLOWED_ORIGINS = [
 #enviar cookies o autenticación desde el frontend
 CORS_ALLOW_CREDENTIALS = True
 
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = "None"  # Obligatorio si estás usando HTTPS
+SESSION_COOKIE_SECURE = True   
+
 
 
 
