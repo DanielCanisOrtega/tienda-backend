@@ -3,7 +3,7 @@ from core.views import PasswordResetConfirmAPIView
 from rest_framework.routers import DefaultRouter
 from .views import (
     CajaViewSet, UsuarioViewSet, TiendaViewSet, EmpleadoViewSet, ProductoViewSet, VentaViewSet,
-    DetalleVentaViewSet, GastoViewSet#,PasswordResetSMSView
+    DetalleVentaViewSet, GastoViewSet
 )
 
 # Configuración del router para manejar los endpoints automáticamente
@@ -21,7 +21,6 @@ urlpatterns = [
     path('', include(router.urls)),  # Incluir todas las rutas del router
     path('auth/', include('dj_rest_auth.urls')),
     path('auth/registration/', include('dj_rest_auth.registration.urls')),
-    #path('api/auth/password/reset/confirm/<uidb64>/<token>/', PasswordResetConfirmAPIView.as_view(), name='password_reset_confirm_api'),
 ]
 
 
