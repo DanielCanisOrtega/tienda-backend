@@ -21,25 +21,6 @@ from core import serializers
 # Obtener el modelo de usuario
 Usuario = get_user_model()
 
-class PasswordResetSMSView(APIView):
-    def post(self, request):
-        phone_number = request.data.get('phone')
-        user = Usuario.objects.filter(profile__phone=phone_number).first()  # Asumiendo que hay un campo `phone`
-        
-        if user:
-            reset_code = random.randint(100000, 999999)
-            user.profile.reset_code = reset_code
-            user.profile.save()
-            
-            # Aquí se integraría Twilio o cualquier otro servicio para enviar el SMS
-            print(f"Enviar código {reset_code} a {phone_number}")
-            
-            return Response({'message': 'Código enviado'}, status=200)
-        
-        return Response({'error': 'Número no registrado'}, status=400)
-
-
-
 # Vista para Usuarios
 class UsuarioViewSet(viewsets.ModelViewSet):
     queryset = Usuario.objects.all()
