@@ -71,11 +71,6 @@ INSTALLED_APPS = [
 
 SITE_ID = 2
 
-# Configuración de autenticación con allauth
-
-#ACCOUNT_LOGIN_METHODS = {"username"}  # Cambia la forma de autenticación
-#ACCOUNT_SIGNUP_FIELDS = ["email*", "username*", "password1*", "password2*"]  # Define los campos requeridos
-
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
