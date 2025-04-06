@@ -24,7 +24,7 @@ urlpatterns = [
     path('reset_password/', auth_views.PasswordResetView.as_view(), name='password_reset'),  # Solicitar restablecimiento
     path('reset_password_send/', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),  # Solicitar restablecimiento
     path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
-    path('reset_password_complete/', auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'), # Solicitar restablecimiento
+    path('reset_password_complete/', auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'), # Contraseña cambiada con exito
 ]
 
 
