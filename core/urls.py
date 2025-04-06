@@ -22,7 +22,7 @@ urlpatterns = [
     path('auth/', include('dj_rest_auth.urls')),
     path('auth/registration/', include('dj_rest_auth.registration.urls')),
     path('reset_password/', auth_views.PasswordResetView.as_view(), name='password_reset'),  # Solicitar restablecimiento
-    path('reset_password_send/', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),  # Solicitar restablecimiento
+    path('reset_password_send/', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),  # Reestablecimiento enviado al correo
     path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
     path('reset_password_complete/', auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'), # Contraseña cambiada con exito
 ]
