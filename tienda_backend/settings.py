@@ -32,6 +32,7 @@ CSRF_TRUSTED_ORIGINS = ['https://tienda-backend-p9ms.onrender.com',"http://local
 CORS_ALLOWED_ORIGINS = [
     #"https://tu-frontend.com", cuando ya esté desplegado poner url
     "http://localhost:3000",  # Si usas React en desarrollo
+    "http://192.168.1.37:3000",
 ]
 
 #enviar cookies o autenticación desde el frontend
