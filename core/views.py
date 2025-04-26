@@ -259,6 +259,72 @@ class VentaViewSet(viewsets.ModelViewSet):
     serializer_class = VentaSerializer
     permission_classes = [permissions.IsAuthenticated]
 
+    def get_queryset(self):
+        usuario = self.request.user
+        tienda = self.request.query_params.get("tienda")
+        queryset = Venta.objects.filter(usuario=usuario)
+        if tienda:
+            queryset = queryset.filter(tienda_id=tienda)
+        return queryset.order_by('-fecha')
+
+    def create(self, request, *args, **kwargs):
+        usuario = request.user
+        tienda_id = request.data.get("tienda")
+        productos = request.data.get("productos")  # [{producto, cantidad}]
+
+        # Verifica caja abierta
+        caja = Caja.objects.filter(tienda_id=tienda_id, usuario=usuario, estado='abierta').first()
+        if not caja:
+            return Response({"error": "No hay caja abierta para esta tienda."}, status=status.HTTP_400_BAD_REQUEST)
+
+        detalles = []
+        total = 0
+
+        for item in productos:
+            try:
+                producto = Producto.objects.get(pk=item["producto"])
+                cantidad = int(item["cantidad"])
+                if producto.cantidad < cantidad:
+                    return Response(
+                        {"error": f"Stock insuficiente para {producto.nombre}"},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+
+                subtotal = producto.precio * cantidad
+                total += subtotal
+                detalles.append({
+                    "producto": producto,
+                    "cantidad": cantidad,
+                    "precio_unitario": producto.precio,
+                    "subtotal": subtotal,
+                })
+
+                producto.cantidad -= cantidad
+                producto.save()
+
+            except Producto.DoesNotExist:
+                return Response({"error": f"Producto con ID {item['producto']} no encontrado."}, status=status.HTTP_404_NOT_FOUND)
+
+        venta = Venta.objects.create(tienda_id=tienda_id, caja=caja, usuario=usuario, total=total)
+
+        for d in detalles:
+            DetalleVenta.objects.create(
+                venta=venta,
+                producto=d["producto"],
+                cantidad=d["cantidad"],
+                precio_unitario=d["precio_unitario"],
+                subtotal=d["subtotal"]
+            )
+
+        return Response(VentaSerializer(venta).data, status=status.HTTP_201_CREATED)
+
+    @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
+    def total_hoy(self, request):
+        hoy = now().date()
+        ventas = Venta.objects.filter(usuario=request.user, fecha__date=hoy)
+        total = sum(v.total for v in ventas)
+        return Response({"fecha": str(hoy), "total_ventas": total})
+
 # Vista para Detalles de Ventas
 class DetalleVentaViewSet(viewsets.ModelViewSet):
     queryset = DetalleVenta.objects.all()
