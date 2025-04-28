@@ -1,4 +1,4 @@
-# 📦 Proyecto de Gestión de Tienda
+# 📦 Proyecto de Gestión de Tienda👨‍💻
 
 Este proyecto es una API desarrollada en Django REST Framework para la gestión interna de una tienda. Permite manejar productos, empleados y tiendas de forma segura y eficiente.
 
