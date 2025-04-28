@@ -27,10 +27,10 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['tienda-backend-p9ms.onrender.com','127.0.0.1', 'localhost']
 
-CSRF_TRUSTED_ORIGINS = ['https://tienda-backend-p9ms.onrender.com',"http://localhost:3000"]
+CSRF_TRUSTED_ORIGINS = ['https://tienda-backend-p9ms.onrender.com',"http://localhost:3000","https://tienda-web-seminario.vercel.app/"]
 
 CORS_ALLOWED_ORIGINS = [
-    "https://tienda-web-seminario.vercel.app/", 
+    "https://tienda-web-seminario.vercel.app",
     "http://localhost:3000",  
     "http://192.168.1.37:3000",
 ]
