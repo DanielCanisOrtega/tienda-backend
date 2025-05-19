@@ -18,7 +18,7 @@ router.register(r'gastos', GastoViewSet, basename='gasto')
 router.register(r'cajas', CajaViewSet, basename='caja')
 
 urlpatterns = [
-    path('', include(router.urls)),  # Incluir todas las rutas del router
+    path('', include(router.urls)),  # Incluir todas las rutas del router siempre y cuando existan
     path('auth/', include('dj_rest_auth.urls')),
     path('auth/registration/', include('dj_rest_auth.registration.urls')),
     path('reset_password/', auth_views.PasswordResetView.as_view(), name='password_reset'),  # Solicitar restablecimiento
