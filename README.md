@@ -15,7 +15,7 @@ git clone https://github.com/tu-usuario/tu-repositorio.git
 cd tu-repositorio
 ```
 
-### 2️⃣  Activar  Entorno Virtual
+### 2️⃣  Activar  Entorno Virtual(Importante)
 
 ```sh
 source env/bin/activate
