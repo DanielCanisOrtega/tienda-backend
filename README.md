@@ -37,3 +37,7 @@ Para visualizar la documentación de la API, accede a:
 
 - **Swagger UI** → [`http://127.0.0.1:8000/swagger/`](http://127.0.0.1:8000/swagger/)
 - **ReDoc** → [`http://127.0.0.1:8000/redoc/`](http://127.0.0.1:8000/redoc/)
+
+- ### 4️⃣  Despliegue
+
+https://github.com/DanielCanisOrtega/tienda-backend.git
